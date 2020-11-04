@@ -1,4 +1,4 @@
 # NIXLER
 Software for the NIXLER nixie tube display
 
-go to tordesign.net to learn more
+Head over to to https://tordesign.net to learn more.
