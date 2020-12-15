@@ -1,3 +1,16 @@
+/* Copyrigth Tor Design 2020 - 2021  
+ *  
+ *  GNU General Public License v3.0
+ *  Permissions of this strong copyleft license are conditioned on making available complete 
+ *  source code of licensed works and modifications, which include larger works using a licensed 
+ *  work, under the same license. Copyright and license notices must be preserved. Contributors 
+ *  provide an express grant of patent rights.
+ *  
+ *   ... See full version as GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
+ *  
+ *  Thank you to all the backers on kickstarter that supported the project on kickstarter
+ *  during the spring of 2020. 
+ */ 
 
 const int ledPin = 26; 
 const int enableHV = 18; 
@@ -108,17 +121,16 @@ void loop(){
  Serial.print("Pressure: ");
  Serial.println(mySensor.readFloatPressure());
   
- int i = 0; 
- 
  strip.setPixelColor(0,R,G,B); // This is the left LED on the clock
  strip.setPixelColor(1,R,G,B); // 
  strip.show(); // This sends the updated pixel color to the hardware.
  strip.setPixelColor(2,R,G,B); //
  strip.setPixelColor(3,R,G,B); // This is the right LED on the clock
  strip.show(); // This sends the updated pixel color to the hardware.
-
+ 
+ int i = 0; 
  while(i < 50){
-    dispSecond(); // display second
+    dispSecond(); // display seconds
     checkButtons();
     delay(100);
     i++;
@@ -131,7 +143,7 @@ void loop(){
     i++;
  }
  
-  cycleNixler(1); // Cycle through all numbers twise
+ cycleNixler(1); // Cycle through all numbers twise
  
  // If just one of the buttons are bushed enter "showoff mode"
 }
