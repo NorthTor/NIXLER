@@ -8,7 +8,7 @@
  *  
  *   ... See full version as GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007
  *  
- *  Thank you to all the backers on kickstarter that supported the project on kickstarter
+ *  Thank you to all the backers that supported the project on kickstarter
  *  during the spring of 2020. 
  */ 
 
