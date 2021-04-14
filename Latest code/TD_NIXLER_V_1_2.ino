@@ -155,12 +155,12 @@ void loop(){
   }
   
   digitalWrite(ledPin, LOW);     
-  i = 0;
-  while(i < 50){
+  int n = 0;
+  while(n < 50){
       dispHourMinute(timeMODE); // Displaying hour and minute (hh:mm) in either 24h or 12h format = timeMODE
       checkButtons();
       delay(100);
-      i++;
+      n++;
    }
    
    cycleNixler(1); // Cycle through all numbers 2x, once   
