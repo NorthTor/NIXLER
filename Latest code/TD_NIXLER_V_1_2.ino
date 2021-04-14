@@ -162,8 +162,7 @@ void loop(){
       delay(100);
       i++;
    }
- 
-   // If button 2 is pressed enter "show-off mode"
+   
    cycleNixler(1); // Cycle through all numbers 2x, once   
     
 }//---------- END MAIN LOOP -----------------------------------------------------------------------------------------
