@@ -342,33 +342,30 @@ void dispNixler(int Nixie4, int Nixie3, int Nixie2, int Nixie1){
 //           tube saving mode and LED color.   
 
 int setupNixler(int Btn1, int Btn2){
+      
       digitalWrite(enableHV, LOW); // enable HV power supply
-      bool Btn1_state = digitalRead(Btn1);
-      bool Btn2_state = digitalRead(Btn2); 
-      int timeMode;
+
+      DateTime now = rtc.now();
+
+      int timeMode = 24;
       int hourMode1 = 2;
       int hourMode2 = 4;
-      int day1 = 0;
-      int day2 = 1;
-      int month1 = 0;
-      int month2 = 1;
+      int day1 = now.day() / 10;
+      int day2 = now.day() % 10;
+      int month1 = now.month() / 10;
+      int month2 = now.month() % 10;
       int R_setting = 120;
       int G_setting = 120;
       int B_setting = 120;
       
       Serial.println("Entered setting mode...");
-      a = 0;
-      b = 0;
-      c = 0;
-      d = 0;    
-      
-      bool Btn1_state_new = digitalRead(Btn1);
-      bool Btn2_state_new = digitalRead(Btn2);
+      a = now.hour() / 10;
+      b = now.hour() % 10;
+      c = now.minute() / 10;
+      d = now.minute() % 10;    
 
-      // Wait while the buttons are pressed 
-      while(Btn1_state_new == Btn1_state || Btn2_state_new == Btn2_state){
-          Btn1_state_new = digitalRead(Btn1);
-          Btn2_state_new = digitalRead(Btn2);
+      // Indicate we're in setting mode, and wait for both buttons to be released 
+      while(digitalRead(Btn1) == HIGH || digitalRead(Btn2) == HIGH){
           dispNixler(0,0,0,0);
           delay(300);
           dispNixler(3,3,3,3);
@@ -538,10 +535,10 @@ int setupNixler(int Btn1, int Btn2){
       
       // -------------- SET YEAR ------------------------------------------------------
       bool yearState = true;
-      int year1 = 0;
-      int year2 = 0;
-      int year3 = 0;
-      int year4 = 0;
+      int year1 = now.year() / 1000;
+      int year2 = (now.year() / 100) % 10;
+      int year3 = (now.year() / 10) % 10;
+      int year4 = now.year() % 10;
       
       while(yearState == true){
           // Set the Most Significant Digit (MSD) in the year
