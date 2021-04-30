@@ -12,10 +12,11 @@
  *  during the spring of 2020. 
  */ 
 //------------------------------ INCLUDES ---------------------------------------------------------
-#include <Wire.h>
-#include <RTClib.h>
-#include <SparkFunBME280.h>
-#include <Adafruit_NeoPixel.h>
+#include <Wire.h> // the Wire library should already be installedas a part of the arduino IDE                
+// Following libraries needs to be downloaded and installed. do this from the menye in the ARDUINO IDE
+#include <RTClib.h>               // Sketch->include Library-> Manage libraries -> search RTClib
+#include <SparkFunBME280.h>       // Sketch->include Library-> Manage libraries -> search sparkfun BME280
+#include <Adafruit_NeoPixel.h>    // Sketch->include Library-> Manage libraries -> search Adafruit NeoPixel
 
 #ifdef __AVR__
 #include <avr/power.h>
