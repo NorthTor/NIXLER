@@ -12,7 +12,7 @@
  *  during the spring of 2020. 
  */ 
 //------------------------------ INCLUDES ---------------------------------------------------------
-#include <Wire.h> // the Wire library should already be installedas a part of the arduino IDE                
+#include <Wire.h> // The Wire library should already be installed as a part of the arduino IDE                
 // Following libraries needs to be downloaded and installed. do this from the menye in the ARDUINO IDE
 #include <RTClib.h>               // Sketch->include Library-> Manage libraries -> search RTClib
 #include <SparkFunBME280.h>       // Sketch->include Library-> Manage libraries -> search sparkfun BME280
@@ -22,17 +22,17 @@
 #include <avr/power.h>
 #endif
 
-#define PIN            12 
-#define NUMPIXELS      4
+#define PIN            12   // for Neopixel RGB LED
+#define NUMPIXELS      4    // for Neopixel RGB LED
 
-// --------------------- GLOBAL SETTINGS ---------------------------------------------------------------
+// --------------------- GLOBAL VARIABLES ---------------------------------------------------------------
 int a = 0;
 int b = 0;
 int c = 0;
 int d = 0;
-int timeMODE = 24;  // default mode = 24h, set to 12 in settings for 12h mode.
-int tubeSaving = 0; // default mode 0 = off,  1 = on
-int savingTime = 0; 
+int timeMODE = 24;   // default mode = 24h, set to 12 in settings for 12h mode.
+int tubeSaving = 1;  // default mode 0 = off,  1 = on
+int savingTime = 0;  
 
 int temperatureMode = 1;  // 1 = For Celsius 
                           // 2 = For Farenheit                       
@@ -45,19 +45,17 @@ int G = 20;
 int B = 25; 
 int cnt = 50;  
                        
-//----------------------------- ESP32 pins to shift register --------------------------------
-const int latchPin = 32;   // pin 12 on the 74hc595   ESP - 32      ST_CP
-const int dataPin = 25;    // pin 14 on the 74hc595   ESP - 25      DS_pin
-const int clockPin = 33;   // pin 11 on the 74hc595   ESP - 33      SH_CP
+//----------------------------- ESP32 pins to shift register ------------------------------------------
+const int latchPin = 32;   // pin 16 on the HV5812 HV driver chip (Strobe)     -> ESP32 - pin 32      
+const int dataPin = 25;    // pin 27 on the HV5812 HV driver chip (data in)    -> ESP32 - pin 25      
+const int clockPin = 33;   // pin 15 on the HV5812 HV driver chip (data clock) -> ESP32 - pin 33      
 
-//------------------------------ For RTC and BMP280 sensor ---------------------------------------------
+//------------------------------ For RTC chip and BMx280 sensor ---------------------------------------------
 RTC_DS3231 rtc;
 BME280 mySensor;
 
 //---------------------------- Neopixel adressable LEDs ------------------------------------------------
 // When we setup the NeoPixel library, we tell it how many pixels, and which pin to use to send signals.
-// Note that for older NeoPixel strips you might need to change the third parameter--see the strandtest
-// example for more information on possible values.
 Adafruit_NeoPixel strip(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 //--------------------- SETUP AND  INITIALIZATION ------------------------------------------------------
@@ -67,20 +65,21 @@ void setup() {
   pinMode(Btn1, INPUT); 
   pinMode(Btn2, INPUT); 
   pinMode(enableHV, OUTPUT);
-  digitalWrite(enableHV, LOW); // Pull the enable pin low in order to power up the high voltage power supply
+  digitalWrite(enableHV, LOW); // Pull the enableHV pin low in order to power up the high voltage power supply
 
-  pinMode(ledPin,   OUTPUT);
+  pinMode(ledPin, OUTPUT);
   digitalWrite(ledPin, HIGH);    
-  // Set the ShiftRegister Pins as output
+  
+  // Set the ShiftRegister pins as output
   pinMode(latchPin, OUTPUT);
   pinMode(clockPin, OUTPUT);
   pinMode(dataPin,  OUTPUT);
 
   Wire.begin(21,22,400000); // SDA,SCL,frequenzy RTC clock
 
-  strip.begin(); // This initializes the NeoPixel LED library
+  strip.begin(); // This initializes the NeoPixel RGB LED library
 
-  mySensor.setI2CAddress(0x76); 
+  mySensor.setI2CAddress(0x76); // set I2C address for the BMx280 sensor
   if(mySensor.beginI2C() == false) Serial.println("Bosh sensor connect failed");
   
   Serial.println(" ");
@@ -164,7 +163,7 @@ void loop(){
       n++;
    }
    
-   cycleNixler(1); // Cycle through all numbers 2x, once   
+   cycleNixler(1); // Cycle through all numbers twise (used as a way of an anti-cathode poisoning scheme)
     
 }//---------- END MAIN LOOP -----------------------------------------------------------------------------------------
 
@@ -173,8 +172,8 @@ void loop(){
 // Name: dispNixie 
 // Summmary: function for displaying all possible values on the four nixies:
  /* For the TorDesign NIXLER display we have 2x 20 bit shiftregisters 
-    incorporated in the two HV drivers (HV5812). These registers are controlled by the ESP32
-    in  order to controll digits in the 4 nixe-tubes. If the bit in the register is set to 1 the coresponding nixie-tube wil
+    incorporated in the two HV drivers (HV5812 chip). These registers are controlled by the ESP32
+    in  order to controll digits in the 4 nixe-tubes. If the bit in the bit array is set to 1, the coresponding nixie-tube wil
     not light up, if its set to 0 it will. 
 
     In total we send 40 bit from the ESP32 to the shift registers everytime we update the display
@@ -194,7 +193,7 @@ void dispNixler(int Nixie4, int Nixie3, int Nixie2, int Nixie1){
                        1,1,1,1,1,1,1,1,1,1  // NixieTube four    
                       }; 
                      
-   // Manipulate the bitArray to light up a certain number in the first nixietube (NIXIE ONE)      
+   // Manipulate the bitArray to light up a certain number in the left-most nixietube (NIXIE ONE)      
         if ( Nixie1 == 1){
           bitArray[0] = 0; 
         }
@@ -990,9 +989,11 @@ int checkButtons(){
              if(push == 1){
                     wasPush = 1;
                     int temperature = 0;
+                    int temp_adjust = 5; // constant used for compensating for 
+                                         // a wormer environment inside the casing of the NIXLER
                     // Read and display temperature 
                     if(temperatureMode == 1){ // Celsius
-                        temperature = mySensor.readTempC();
+                        temperature = mySensor.readTempC() - temp_adjust;
                     }
                     if(temperatureMode == 2){ // Fahrenheit
                         temperature = mySensor.readTempF();
