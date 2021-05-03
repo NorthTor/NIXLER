@@ -17,6 +17,7 @@
 #include <RTClib.h>               // Sketch->include Library-> Manage libraries -> search RTClib
 #include <SparkFunBME280.h>       // Sketch->include Library-> Manage libraries -> search sparkfun BME280
 #include <Adafruit_NeoPixel.h>    // Sketch->include Library-> Manage libraries -> search Adafruit NeoPixel
+#include <EEPROM.h>
 
 #ifdef __AVR__
 #include <avr/power.h>
@@ -24,13 +25,13 @@
 
 #define PIN            12   // for Neopixel RGB LED
 #define NUMPIXELS      4    // for Neopixel RGB LED
-
+#define EEPROM_SIZE    6    // Number of bytes allocated in EEPROM used for saving settings
 // --------------------- GLOBAL VARIABLES ---------------------------------------------------------------
 int a = 0;
 int b = 0;
 int c = 0;
 int d = 0;
-int timeMODE = 24;   // default mode = 24h, set to 12 in settings for 12h mode.
+int timeMode = 24;   // default mode = 24h, set to 12 in settings for 12h mode.
 int tubeSaving = 1;  // default mode 0 = off,  1 = on
 int savingTime = 0;  
 
@@ -60,6 +61,7 @@ Adafruit_NeoPixel strip(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
 
 //--------------------- SETUP AND  INITIALIZATION ------------------------------------------------------
 void setup() { 
+  EEPROM.begin(EEPROM_SIZE); // initialize EEPROM
   Serial.begin(9600); 
   
   pinMode(Btn1, INPUT); 
@@ -76,11 +78,20 @@ void setup() {
   pinMode(dataPin,  OUTPUT);
 
   Wire.begin(21,22,400000); // SDA,SCL,frequenzy RTC clock
-
+  EEPROM.begin(EEPROM_SIZE);
+ 
   strip.begin(); // This initializes the NeoPixel RGB LED library
-
+  
   mySensor.setI2CAddress(0x76); // set I2C address for the BMx280 sensor
   if(mySensor.beginI2C() == false) Serial.println("Bosh sensor connect failed");
+
+  // Get the R, G, B values from the latest stored settings
+  R = EEPROM.read(0); 
+  G = EEPROM.read(1);
+  B = EEPROM.read(2);
+  tubeSaving = EEPROM.read(3);  
+  timeMode = EEPROM.read(4);  
+  temperatureMode = EEPROM.read(5);
   
   Serial.println(" ");
   Serial.println("NIXLER by Tor Design NORWAY");
@@ -157,7 +168,7 @@ void loop(){
   digitalWrite(ledPin, LOW);     
   int n = 0;
   while(n < 50){
-      dispHourMinute(timeMODE); // Displaying hour and minute (hh:mm) in either 24h or 12h format = timeMODE
+      dispHourMinute(timeMode); // Displaying hour and minute (hh:mm) in either 24h or 12h format = timeMODE
       checkButtons();
       delay(100);
       n++;
@@ -452,12 +463,12 @@ int setupNixler(int Btn1, int Btn2){
             if(hourMode1 == 2){
               hourMode1 = 1;
               hourMode2 = 2;
-              timeMODE = 12; // 12h mode saved in variable
+              timeMode = 12; // 12h mode saved in variable
             }
             else{
               hourMode1 = 2;
               hourMode2 = 4;
-              timeMODE = 24; // 24h mode saved in variable
+              timeMode = 24; // 24h mode saved in variable
             }
             delay(200);
           }
@@ -837,10 +848,20 @@ int setupNixler(int Btn1, int Btn2){
       strip.setPixelColor(2,R,G,B);
       strip.setPixelColor(3,R,G,B); // This is the right LED on the clock
       strip.show(); // Send the color information to the LED  
-      return timeMode;
+
+      //  ------------------------STORE THE SETTINGS -----------------------------------------------------------
+      // Write the settings: R, G, B color values, tubesaving, timeMode, and temperatureMode -setting to EEPROM 
+      EEPROM.write(0,R);
+      EEPROM.write(1,G);
+      EEPROM.write(2,B);
+      EEPROM.write(3,tubeSaving);
+      EEPROM.write(4,timeMode);
+      EEPROM.write(5,temperatureMode);
+      EEPROM.commit();
+      
 } // END setupNixie function
 
-//---------------------------------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------------
 // Name: runNixlerTime 
 // Summmary: Display time in either 24h or 12h format 
 
@@ -850,7 +871,7 @@ void dispHourMinute(int timeMode)
    int MINUTE = now.minute();
    int HOUR = now.hour();
 
-   if(timeMODE == 12){
+   if(timeMode == 12){
       if(HOUR == 13){
            HOUR = 1;
       }
@@ -941,9 +962,9 @@ int checkButtons(){
      bool Btn1_state = digitalRead(Btn1);
      bool Btn2_state = digitalRead(Btn2); 
      if(Btn1_state && Btn2_state  == HIGH){
-          // Enter the NIXLER setting mode set the time, date and 12/24 hour mode.
-          int returned_data = setupNixler(Btn1, Btn2);
-          return returned_data; //returns TimeMODE as int (24 or 12)
+          // Enter the NIXLER setting mode 
+          setupNixler(Btn1, Btn2);
+          
      }
      
      if(Btn1_state == LOW && Btn2_state == HIGH){
