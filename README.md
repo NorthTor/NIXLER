@@ -1,5 +1,5 @@
 # NIXLER
-Software for the NIXLER nixie tube display
+Software for the NIXLER nixie tube display   
 Current version: 1.2
 
 Head over to to https://tordesign.net/nixler to learn more.
